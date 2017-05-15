@@ -1,10 +1,5 @@
 (in-package :ssdb)
 
-(defmacro defconstant (name value &optional doc)
-  "Make sure VALUE is evaluated only once \(to appease SBCL)."
-  `(cl:defconstant ,name (if (boundp ',name) (symbol-value ',name) ,value)
-     ,@(when doc (list doc))))
-
 ;;; Debugging support
 
 (defvar *echo-p* nil
@@ -18,10 +13,9 @@ for debugging purposes.  The default is *STANDARD-OUTPUT*.")
 
 ;;; Low level API
 
-(eval-always (defparameter +utf8+ '(:utf-8 :eol-style :crlf)))
-
-(defconstant +default-host+ #(127 0 0 1))
-(defconstant +default-port+ 8888)
+(eval-always (defparameter +utf8+ '(:utf-8 :eol-style :crlf))
+             (defconstant +default-host+ #(127 0 0 1))
+             (defconstant +default-port+ 8888))
 
 (defvar *connection* nil "The current SSDB connection.")
 

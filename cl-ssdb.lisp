@@ -186,7 +186,6 @@ format."
            (prog1 (expect ,reply-type)
              (unless *pipelined*
                (clear-input (conn-stream *connection*)))))))
-     (import ',cmd '#:ssdb)
-     (export ',cmd '#:ssdb)))
+     (import ',cmd '#:ssdb)))
 
 ;;; end

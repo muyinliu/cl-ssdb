@@ -1,4 +1,6 @@
 ;;; CL-SSDB commands
+;;; Original work Copyright (c) Vsevolod Dyomkin, Oleksandr Manzyuk.
+;;; Modified work Copyright (c) 2017 Muyinliu Xing
 
 (in-package #:ssdb)
 
@@ -6,7 +8,15 @@
 ;;; Server commands
 
 (def-cmd ping () :status
-  "Ping server.
+  "Ping server, will get an \"ok\", NOT a \"pong\".
+Note: It's NOT a public command, but it works.")
+
+(def-cmd clear_binlog () :status
+  "Clear binlog, will get an \"ok\".
+Note: It's NOT a public command, but it works.")
+
+(def-cmd compact () :status
+  "Compress database, will get an \"ok\".
 Note: It's NOT a public command, but it works.")
 
 (def-cmd auth (pass) :status
@@ -39,7 +49,96 @@ Key-Value list.
 
 The key-value list is return as: k1 v1 k2 v2 ...")
 
-;;; IP Filter commands
+(defun version ()
+  "Return SSDB Server's version string. Note: it is NOT a standard command."
+  (let ((list (ppcre:split "\\n" (info))))
+    (nth (1+ (position "version" list :test #'equal))
+         list)))
+
+(defun flushdb (&optional data-type)
+  "flushdb is NOT a standard command. But as ssdb-cli supported it as a client side command since 1.9.2, adding this command would be fine. It's convenient for test.
+
+Return Example:
+10
+\(\"kv\" . 1)
+\(\"hash\" . 2)
+\(\"zset\" . 3)
+\(\"list\" . 4)"
+  (let ((batch 1000)
+        (count 0)
+        (result nil))
+    ;; clear kv
+    (when (or (null data-type)
+              (equal data-type "kv"))
+      (let ((kv-count 0))
+        (loop
+           do (let* ((keys (keys "" "" batch))
+                     (length (length keys)))
+                (when (zerop length)
+                  (loop-finish))
+
+                (apply #'multi_del keys)
+                (incf count length)
+                (incf kv-count length)))
+        (push (cons "kv" kv-count) result)))
+    
+    ;; clear hash
+    (when (or (null data-type)
+              (equal data-type "hash"))
+      (let ((hash-count 0))
+        (loop
+           do (let* ((keys (hlist "" "" batch))
+                     (length (length keys)))
+                (when (zerop length)
+                  (loop-finish))
+
+                (dolist (key keys)
+                  (hclear key))
+                (incf count length)
+                (incf hash-count length)))
+        (push (cons "hash" hash-count) result)))
+    
+    ;; clear zset
+    (when (or (null data-type)
+              (equal data-type "zset"))
+      (let ((zset-count 0))
+        (loop
+           do (let* ((keys (zlist "" "" batch))
+                     (length (length keys)))
+                (when (zerop length)
+                  (loop-finish))
+
+                (dolist (key keys)
+                  (zclear key))
+                (incf count length)
+                (incf zset-count length)))
+        (push (cons "zset" zset-count) result)))
+    
+    ;; clear list
+    (when (or (null data-type)
+              (equal data-type "list"))
+      (let ((list-count 0))
+        (loop
+           do (let* ((keys (qlist "" "" batch))
+                     (length (length keys)))
+                (when (zerop length)
+                  (loop-finish))
+
+                (dolist (key keys)
+                  (qclear key))
+                (incf count length)
+                (incf list-count length)))
+        (push (cons "list" list-count) result)))
+    
+    ;; clear binlog
+    (clear_binlog)
+
+    ;; compress database
+    (compact)
+    
+    (values-list (reverse (append result (list count))))))
+
+;;; IP Filter Commands
 
 (def-cmd list_allow_ip () :list
   "Available since: 1.9.3
@@ -115,7 +214,7 @@ rule - IP address filter rule, specify only the prefix, 127.0.1, 127.0, etc.
 Return Value
 Status reply.")
 
-;;; Key Value commands
+;;; Key Value Commands
 
 (def-cmd set (key value) :status
   "Set the value of the key.
@@ -158,7 +257,7 @@ key -
 ttl - number of seconds to live.
 
 Return Value
-If the key exists and ttl is set, return 1, otherwise return 0.")
+If the key exists then ttl will be set/update, return 1, otherwise return 0.")
 
 (def-cmd ttl (key) :integer
   "Returns the time left to live in seconds, only for keys of KV type.
@@ -245,8 +344,8 @@ The value of the bit before it was set: 0 or 1. If val is not 0 or 1, returns fa
 Parameters
 
 key - 
-start - Optional, inclusive, if start is negative, count from start'th character from the end of string.
-end - Optional, inclusive.
+start - Optional, inclusive, if start is negative, count from start'th character from the end of string. unit: bytes
+end - Optional, inclusive. unit: bytes
 
 Return Value
 The number of bits set to 1.")
@@ -320,7 +419,7 @@ value1 -
 ...
 
 Return Value
-false on error, other values indicate OK.")
+false on error, other values(count of keys) indicate OK.")
 
 (def-cmd multi_get (&rest keys) :list
   "Get the values related to the specified multiple keys
@@ -343,7 +442,7 @@ key1 -
 Return Value
 false on error, other values indicate OK.")
 
-;;; Hashmap commands
+;;; Hashmap Commands
 
 (def-cmd hset (name key value) :boolean
   "Set the string value in argument as value of the key of a hashmap.
@@ -511,7 +610,7 @@ key1 -
 Return Value
 false on error, other values indicate OK.")
 
-;;; Sorted Set
+;;; Sorted Set Commands
 
 (def-cmd zset (name key score) :boolean
   "Set the score of the key of a zset.
@@ -931,8 +1030,5 @@ false on error, otherwise an array containing the names.")
 
 (def-cmd qrlist (name_start name_end limit) :list
   "Like qlist, but in reverse order.")
-
-
-;;; not supported commands: flushdb - use ssdb-cli for that
 
 ;;; end
