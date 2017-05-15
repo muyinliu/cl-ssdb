@@ -74,6 +74,12 @@ To load "cl-ssdb":
 ```
 
 ## Run test case
+First, make sure `ssdb-server` is running. You can use follow shell commands to run `ssdb-server`:
+```shell
+cd cl-ssdb/test
+ssdb-server -d -s start ./ssdb.conf
+```
+
 In Common Lisp REPL:
 ```lisp
 (asdf:test-system :cl-ssdb)
