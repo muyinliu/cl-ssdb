@@ -149,7 +149,7 @@
       (is (ssdb:setnx "key1" "value2")  t)
       (is (ssdb:setnx "key1" "value2")  nil)
       (is (ssdb:del "key1")             "ok"))
-    (subtest "Testing setbit getbit bitcount countbit"
+    (subtest "Testing setbit getbit bitcount countbit 1"
       (is (ssdb:setbit "key1" 0 1)      0)
       (is (ssdb:setbit "key1" 0 1)      1)
       (is (ssdb:getbit "key1" 0)        1)
@@ -169,6 +169,7 @@
       (is (ssdb:bitcount "key1" 0 3)    2)
       (is (ssdb:bitcount "key1" 0 4)    2)
       (is (ssdb:bitcount "not-exists-key") 0)
+      (is (ssdb:countbit "not-exists-key") 0)
       (is (ssdb:del "key1")             "ok"))
     (subtest "Testing setbit getbit bitcount countbit 2"
       (is (ssdb:del "key1")             "ok")
@@ -207,6 +208,9 @@
       (is (ssdb:bitcount "key1")        7)
       (is (ssdb:bitcount "key1" 0 1)    7) ;; index by bytes, not bits
       (is (ssdb:bitcount "key1" 1 2)    4) ;; index by bytes, not bits
+      (is (ssdb:countbit "key1")        7)
+      (is (ssdb:countbit "key1" 0 1)    3)
+      (is (ssdb:countbit "key1" 1 1)    4)
       (is (ssdb:setbit "key1" 1 1)      0)
       (is (ssdb:get "key1")             "cc")
       (is (ssdb:del "key1")             "ok"))
@@ -222,15 +226,89 @@
       (is (ssdb:substr "key1" 0 8)      "value1")
       (is (ssdb:substr "key1" 1 7)      "alue1")
       (is (ssdb:del "key1")             "ok"))
-    (subtest "Testing keys rkeys scan rscan"
+    (subtest "Testing keys rkeys 1"
       (is (ssdb:keys "" "" -1)          nil)
+      (is (ssdb:rkeys "" "" -1)         nil)
       (is (ssdb:set "key1" "value1")    "ok")
       (is (ssdb:keys "" "" -1)          '("key1") :test #'equal)
+      (is (ssdb:rkeys "" "" -1)         '("key1") :test #'equal)
       (is (ssdb:set "key2" "value2")    "ok")
       (is (ssdb:keys "" "" -1)          '("key1" "key2") :test #'equal)
+      (is (ssdb:rkeys "" "" -1)         '("key2" "key1") :test #'equal)
       (is (ssdb:del "key1")             "ok")
       (is (ssdb:keys "" "" -1)          '("key2") :test #'equal)
+      (is (ssdb:rkeys "" "" -1)         '("key2") :test #'equal)
       (is (ssdb:del "key2")             "ok")
-      (is (ssdb:keys "" "" -1)          nil))))
+      (is (ssdb:keys "" "" -1)          nil)
+      (is (ssdb:rkeys "" "" -1)         nil))
+    (subtest "Testing keys rkeys 2"
+      (is (ssdb:set "key1" "value1")    "ok")
+      (is (ssdb:set "key2" "value1")    "ok")
+      (is (ssdb:set "key3" "value1")    "ok")
+      (is (ssdb:set "key4" "value1")    "ok")
+      (is (ssdb:keys "" "" -1)
+          '("key1" "key2" "key3" "key4")
+          :test #'equal)
+      (is (ssdb:rkeys "" "" -1)
+          '("key4" "key3" "key2" "key1")
+          :test #'equal)
 
+      (is (ssdb:keys "" "key2" -1)      '("key1" "key2") :test #'equal)
+      (is (ssdb:keys "key1" "key2" -1)  '("key2") :test #'equal)
+      (is (ssdb:keys "key1" "key3" -1)  '("key2" "key3") :test #'equal)
+      (is (ssdb:keys "" "" 2)           '("key1" "key2") :test #'equal)
+      (is (ssdb:keys "" "" 3)           '("key1" "key2" "key3") :test #'equal)
+
+      (is (ssdb:rkeys "" "key2" -1)     '("key4" "key3" "key2") :test #'equal)
+      (is (ssdb:rkeys "key4" "key2" -1) '("key3" "key2") :test #'equal)
+      (is (ssdb:rkeys "key4" "key3" -1) '("key3") :test #'equal)
+      (is (ssdb:rkeys "" "" 2)          '("key4" "key3") :test #'equal)
+      (is (ssdb:rkeys "" "" 3)          '("key4" "key3" "key2") :test #'equal)
+
+      (is (ssdb:del "key1")             "ok")
+      (is (ssdb:del "key2")             "ok")
+      (is (ssdb:del "key3")             "ok")
+      (is (ssdb:del "key4")             "ok")
+      (is (ssdb:keys "" "" -1)          nil)
+      (is (ssdb:rkeys "" "" -1)         nil))
+    (subtest "Testing keys rkeys scan rscan 3"
+      (is (ssdb:set "key1" "value1")    "ok")
+      (is (ssdb:set "key2" "value1")    "ok")
+      (is (ssdb:set "key3" "value1")    "ok")
+      (is (ssdb:set "key4" "value1")    "ok")
+      (is (ssdb:set "akey1" "value1")   "ok")
+      (is (ssdb:set "akey2" "value1")   "ok")
+      (is (ssdb:set "akey3" "value1")   "ok")
+      (is (ssdb:set "akey4" "value1")   "ok")
+      ;; Note: SSDB will sort keys by string< ,
+      ;;   result: "akey1" "akey2" "akey3" "akey4" "key1" "key2" "key3" "key4"
+      
+      (is (ssdb:keys "key" "" -1)       '("key1" "key2" "key3" "key4") :test #'equal)
+      (is (ssdb:rkeys "key" "" -1)      '("akey4" "akey3" "akey2" "akey1") :test #'equal)
+
+      (is (ssdb:keys "" "key2" -1)
+          '("akey1" "akey2" "akey3" "akey4" "key1" "key2")
+          :test #'equal)
+      (is (ssdb:keys "key1" "key2" -1)  '("key2") :test #'equal)
+      (is (ssdb:keys "key1" "key3" -1)  '("key2" "key3") :test #'equal)
+      (is (ssdb:keys "" "" 2)           '("akey1" "akey2") :test #'equal)
+      (is (ssdb:keys "" "" 3)           '("akey1" "akey2" "akey3") :test #'equal)
+
+      (is (ssdb:rkeys "" "key2" -1)     '("key4" "key3" "key2") :test #'equal)
+      (is (ssdb:rkeys "key4" "key2" -1) '("key3" "key2") :test #'equal)
+      (is (ssdb:rkeys "key4" "key3" -1) '("key3") :test #'equal)
+      (is (ssdb:rkeys "" "" 2)          '("key4" "key3") :test #'equal)
+      (is (ssdb:rkeys "" "" 3)          '("key4" "key3" "key2") :test #'equal)
+
+      (is (ssdb:del "key1")             "ok")
+      (is (ssdb:del "key2")             "ok")
+      (is (ssdb:del "key3")             "ok")
+      (is (ssdb:del "key4")             "ok")
+      (is (ssdb:del "akey1")            "ok")
+      (is (ssdb:del "akey2")            "ok")
+      (is (ssdb:del "akey3")            "ok")
+      (is (ssdb:del "akey4")            "ok")
+      (is (ssdb:keys "" "" -1)          nil)
+      (is (ssdb:rkeys "" "" -1)         nil))))
+        
 (finalize)
