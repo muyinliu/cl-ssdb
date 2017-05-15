@@ -77,6 +77,7 @@ To load "cl-ssdb":
 First, make sure `ssdb-server` is running. You can use follow shell commands to run `ssdb-server`:
 ```shell
 cd cl-ssdb/test
+mkdir var
 ssdb-server -d -s start ./ssdb.conf
 ```
 
