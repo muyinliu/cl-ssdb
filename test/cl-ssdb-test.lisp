@@ -463,5 +463,16 @@
     (subtest "Testing zpop_front zpop_back"))
   (with-test-db
     (subtest "Testing multi_zset multi_zget multi_zdel")))
+
+(subtest "Testing list commands"
+  (with-test-db
+    (subtest "Testing qpush_front qpush_back qpush")
+    (subtest "Testing qpop_front qpop_back qpop")
+    (subtest "Testing qfront qback")
+    (subtest "Testing qsize")
+    (subtest "Testing qclear")
+    (subtest "Testing qset qget")
+    (subtest "Testing qrange qslice qtrim_front qtrim_back")
+    (subtest "Testing qlist qrlist")))
         
 (finalize)
