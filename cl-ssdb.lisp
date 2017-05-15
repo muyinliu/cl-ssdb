@@ -138,7 +138,8 @@ expected results."
   (car (receive)))
 
 (defmethod expect ((type (eql :integer)))
-  (parse-integer (second (receive))))
+  (when-let (data (second (receive)))
+    (parse-integer data)))
 
 (defmethod expect ((type (eql :boolean)))
   (ecase (parse-integer (second (receive)))
