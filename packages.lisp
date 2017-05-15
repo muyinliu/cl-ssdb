@@ -3,7 +3,7 @@
 (defpackage #:cl-ssdb
   (:use #:cl #:rutil)
   (:nicknames #:ssdb)
-  (:shadow #:quit #:set #:get #:substr)
+  (:shadow #:quit #:set #:get #:substr #:defconstant)
   (:export #:ssdb-connection
            #:connect
            #:disconnect
