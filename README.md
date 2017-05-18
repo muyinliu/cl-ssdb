@@ -79,7 +79,6 @@ More examples please look at the file `test/cl-ssdb-test.lisp`
 First, make sure `ssdb-server` is running. You can use follow shell commands to run `ssdb-server`:
 ```shell
 cd cl-ssdb/test
-mkdir var
 ssdb-server -d -s start ./ssdb.conf
 ```
 Please make sure directory `cl-ssdb/test/var` is exists.
