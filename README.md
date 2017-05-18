@@ -73,6 +73,8 @@ To load "cl-ssdb":
 "value1"
 ```
 
+More examples please look at the file `test/cl-ssdb-test.lisp`
+
 ## Run test case
 First, make sure `ssdb-server` is running. You can use follow shell commands to run `ssdb-server`:
 ```shell
@@ -80,6 +82,7 @@ cd cl-ssdb/test
 mkdir var
 ssdb-server -d -s start ./ssdb.conf
 ```
+Please make sure directory `cl-ssdb/test/var` is exists.
 
 In Common Lisp REPL:
 ```lisp
