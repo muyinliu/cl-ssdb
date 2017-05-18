@@ -141,6 +141,10 @@ expected results."
   (when-let (data (second (receive)))
     (parse-integer data)))
 
+(defmethod expect ((type (eql :number)))
+  (when-let (data (second (receive)))
+    (parse-number data)))
+
 (defmethod expect ((type (eql :boolean)))
   (ecase (parse-integer (second (receive)))
     (1 t)

@@ -456,13 +456,78 @@
       (is (ssdb:zkeys "key1" "field2" "" "" -1) '("field3" "field4") :test #'equal)
       (is (ssdb:zkeys "key1" "field2" 4 "" -1) '("field4") :test #'equal)))
   (with-test-db
-    (subtest "Testing zrank zrrank zsum zavg"))
+    (subtest "Testing zrank zrrank zsum zavg"
+      (is (ssdb:zset "key1" "field1" 1)        t)
+      (is (ssdb:zset "key1" "field2" 3)        t)
+      (is (ssdb:zset "key1" "field3" 2)        t)
+      (is (ssdb:zset "key1" "field4" 5)        t)
+      (is (ssdb:zrank "key1" "field1")         0)
+      (is (ssdb:zrank "key1" "field2")         2)
+      (is (ssdb:zrank "key1" "field3")         1)
+      (is (ssdb:zrank "key1" "field4")         3)
+      (is (ssdb:zrrank "key1" "field1")        3)
+      (is (ssdb:zrrank "key1" "field2")        1)
+      (is (ssdb:zrrank "key1" "field3")        2)
+      (is (ssdb:zrrank "key1" "field4")        0)
+      (is (ssdb:zsum "key1" "" "")             11)
+      (is (ssdb:zsum "key1" 0 10)              11)
+      (is (ssdb:zsum "key1" 0 3)               6)
+      (is (ssdb:zsum "key1" 1 3)               6)
+      (is (ssdb:zavg "key1" 0 3)               2.0)
+      (is (ssdb:zavg "key1" 1 3)               2.0)
+      (is (ssdb:zavg "key1" 2 3)               2.5)
+      (is (ssdb:zavg "key1" 2 6)               3.333333)))
   (with-test-db
-    (subtest "Testing zremrangebyrank zremrangebyscore"))
+    (subtest "Testing zremrangebyrank"
+      (is (ssdb:zset "key1" "field1" 1)        t)
+      (is (ssdb:zset "key1" "field2" 3)        t)
+      (is (ssdb:zset "key1" "field3" 2)        t)
+      (is (ssdb:zset "key1" "field4" 5)        t)
+      (is (ssdb:zremrangebyrank "key1" 0 2)    3)
+      (is (ssdb:zget "key1" "field1")          nil)
+      (is (ssdb:zget "key1" "field2")          nil)
+      (is (ssdb:zget "key1" "field3")          nil)
+      (is (ssdb:zget "key1" "field4")          5)))
   (with-test-db
-    (subtest "Testing zpop_front zpop_back"))
+    (subtest "Testing zremrangebyscore"
+      (is (ssdb:zset "key1" "field1" 1)        t)
+      (is (ssdb:zset "key1" "field2" 3)        t)
+      (is (ssdb:zset "key1" "field3" 2)        t)
+      (is (ssdb:zset "key1" "field4" 5)        t)
+      (is (ssdb:zremrangebyscore "key1" 3 6)   2)
+      (is (ssdb:zget "key1" "field1")          1)
+      (is (ssdb:zget "key1" "field2")          nil)
+      (is (ssdb:zget "key1" "field3")          2)
+      (is (ssdb:zget "key1" "field4")          nil)))
   (with-test-db
-    (subtest "Testing multi_zset multi_zget multi_zdel")))
+    (subtest "Testing zpop_front"
+      (is (ssdb:zset "key1" "field1" 1)        t)
+      (is (ssdb:zset "key1" "field2" 3)        t)
+      (is (ssdb:zset "key1" "field3" 2)        t)
+      (is (ssdb:zset "key1" "field4" 5)        t)
+      (is (ssdb:zpop_front "key1" 2)
+          '("field1" "1" "field3" "2")
+          :test #'equal)
+      (is (ssdb:zpop_front "key1" 1) '("field2" "3") :test #'equal)
+      (is (ssdb:zcount "key1" "" "")           1)))
+  (with-test-db
+    (subtest "Testing zpop_back"
+      (is (ssdb:zset "key1" "field1" 1)        t)
+      (is (ssdb:zset "key1" "field2" 3)        t)
+      (is (ssdb:zset "key1" "field3" 2)        t)
+      (is (ssdb:zset "key1" "field4" 5)        t)
+      (is (ssdb:zpop_back "key1" 3)
+          '("field4" "5" "field2" "3" "field3" "2")
+          :test #'equal)))
+  (with-test-db
+    (subtest "Testing multi_zset multi_zget multi_zdel"
+      (is (ssdb:multi_zset "key1" "field1" 1 "field2" 3 "field3" 2 "field4" 5) 4)
+      (is (ssdb:multi_zget "key1" "field1" "field2")
+          '("field1" "1" "field2" "3")
+          :test #'equal)
+      (is (ssdb:multi_zget "key1" "field1" "not-exists") '("field1" "1") :test #'equal)
+      (is (ssdb:multi_zdel "key1" "field1" "field2") 2)
+      (is (ssdb:multi_zdel "key1" "field3" "not-exists") 1))))
 
 (subtest "Testing list commands"
   (with-test-db

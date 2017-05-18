@@ -784,7 +784,7 @@ score_end - The maximum score related to keys\(inclusive), empty string means +i
 
 Return Value")
 
-(def-cmd zavg (name score_start score_end) :integer
+(def-cmd zavg (name score_start score_end) :number
   "Returns the average of elements of the sorted set stored at the specified key which have scores in the range [start,end].
 Parameters
 

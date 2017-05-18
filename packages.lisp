@@ -1,7 +1,7 @@
 (in-package :cl-user)
 
 (defpackage #:cl-ssdb
-  (:use #:cl #:rutil)
+  (:use #:cl #:rutil #:parse-number)
   (:nicknames #:ssdb)
   (:shadow #:quit #:set #:get #:substr #:defconstant)
   (:export #:ssdb-connection
