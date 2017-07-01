@@ -57,7 +57,8 @@ CMD is the command name (a string or a symbol), and ARGS are its arguments
                     (loop for arg in all-args
                        do (let ((arg (ensure-string arg)))
                             (format stream "~A~%~A~%"
-                                    (length arg)
+                                    (babel:string-size-in-octets arg
+                                                                 :encoding :utf-8)
                                     arg)))
                     (format stream "~%")))
          (soc (flex:flexi-stream-stream (conn-stream *connection*))))
@@ -116,9 +117,9 @@ expected results."
                        :message (format nil "Received ~S as the initial reply line."
                                         size-string)))
 
-              (let ((result-temp (make-array size :element-type 'character)))
+              (let ((result-temp (make-array size :element-type '(unsigned-byte 8))))
                 (read-sequence result-temp conn-stream)
-                (push result-temp result)
+                (push (babel:octets-to-string result-temp :encoding :utf-8) result)
                 ;; Ignore each #\Newline after data
                 (read-char conn-stream nil nil)))))
     (setf result (reverse result))

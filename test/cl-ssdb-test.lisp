@@ -590,5 +590,17 @@
       (is (ssdb:qlist "akey" "key" -1)
           '("akey1" "bkey2" "ckey3" "dkey4")
           :test #'equal))))
+
+(subtest "Testing non-ASCII character"
+  (with-test-db
+    (is (ssdb:set "key" "value contains non-ascii character字符")
+        "ok")
+    (is (ssdb:get "key")
+        "value contains non-ascii character字符")
+    (is (ssdb:set "key contains non-ascii character字符"
+                  "value contains non-ascii character字符")
+        "ok")
+    (is (ssdb:get "key contains non-ascii character字符")
+        "value contains non-ascii character字符")))
         
 (finalize)
