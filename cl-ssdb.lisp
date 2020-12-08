@@ -110,29 +110,31 @@ expected results."
             (when (or (null size-string)
                       (zerop (length size-string)))
               (loop-finish))
-            (let ((size (parse-integer size-string :junk-allowed t)))
-              (when (or (null size)
-                        (<= size 0))
-                (error 'ssdb-bad-reply
-                       :message (format nil "Received ~S as the initial reply line."
-                                        size-string)))
-
-              (let ((result-temp (make-array size :element-type '(unsigned-byte 8))))
-                (read-sequence result-temp conn-stream)
-                (push (babel:octets-to-string result-temp :encoding :utf-8) result)
-                ;; Ignore each #\Newline after data
-                (read-char conn-stream nil nil)))))
+            (let ((size (or (parse-integer size-string :junk-allowed t)
+                            0)))
+              (if (<= size 0)
+                  (push "" result)
+                  (let ((result-temp (make-array size :element-type '(unsigned-byte 8))))
+                    (read-sequence result-temp conn-stream)
+                    (push (babel:octets-to-string result-temp :encoding :utf-8) result)))
+              ;; Ignore each #\Newline after data
+              (read-char conn-stream nil nil))))
     (setf result (reverse result))
     (when *echo-p*
       (format *echo-stream* "> ~S~%" result))
     (let ((status (car result)))
-      ;; status: ok, not_found, error, fail, client_error
-      (when (or (equal "noauth" status)
-                (equal "error" status)
-                (equal "fail" status)
-                (equal "client_error" status))
-        (error 'ssdb-error-reply :message (second result))))
-    result))
+      (cond ((equal "" status)
+             (error 'ssdb-bad-reply
+                    :message (format nil "Received ~S as the initial reply line."
+                                     nil)))
+            ;; status: not_found, error, fail, client_error
+            ((or (equal "noauth" status)
+                 (equal "error" status)
+                 (equal "fail" status)
+                 (equal "client_error" status))
+             (error 'ssdb-error-reply :message (second result)))
+            ;; status: ok
+            (t result)))))
 
 (defmethod expect ((type (eql :status)))
   "Receive and process status reply, which is just a string."
