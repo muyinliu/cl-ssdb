@@ -3,6 +3,7 @@
 Note: [SSDB](http://ssdb.io/), A high performance NoSQL database supporting many data structures, an alternative to Redis.
 
 ## Install
+
 In Shell:
 ```shell
 git clone https://github.com/muyinliu/cl-ssdb
@@ -24,13 +25,16 @@ To load "cl-ssdb":
 ```
 
 ## Dependencies
-* [usocket](http://common-lisp.net/project/usocket/)
-* [flexi-streams](http://common-lisp.net/project/flexi-streams/)
-* [rutils](http://github.com/vseloved/rutils)
-* [cl-ppcre](http://www.weitz.de/cl-ppcre/)
+
+- [usocket](http://common-lisp.net/project/usocket/)
+- [flexi-streams](http://common-lisp.net/project/flexi-streams/)
+- [rutils](http://github.com/vseloved/rutils)
+- [cl-ppcre](http://www.weitz.de/cl-ppcre/)
 
 ## Usage
+
 ### connect to SSDB
+
 ```lisp
 (ssdb:connect)
 ```
@@ -40,6 +44,7 @@ To load "cl-ssdb":
 ```
 
 ### auth with password
+
 ```lisp
 (ssdb:auth "8AgYA/ougM9DCvtS9l172ddhb+v/nIAPvVpJjMdzHz0VnkB6Ji3qC904O1XuOj+6ZD9cqJq3xgsPQRUzGDA9YZfI8z/hA5G6fIxnB9g/VLUo4GrEHRJ5bMV3h8MknaHreQQ7wjxuzgkNLfrxsev6ZULCXWUizbNU3hthMIQjjtS6L+yRnOcKBH+f7IsCyZJsikCmNSFpyN2DaKqFnqTJphueuodkKAqK+N3iCjsrhuucvW3GkZOpXkBILicSDZ36dXQnKDQPctr8w4RTLzbg0lb7b5qcO134A6aVRl4WrBScwRf6HNB+r0p+8zeWAcmdtIQbYwY0wh7A6tS0mWOpTTD5BQCiqL+WwZkL3i2K3wAK0tx3WI9g8I4k8JBwxdLwi0I1UW2dF5oMpk4KppB6nqckya4ybkyGAFw6op3IhAa6m/jvWZUaZrN8im/tlcCoDFfQCywWx4V06eqa35221c+9DbpXfFvJcFxZ6xKJkf0I34SIarLI+pVqm/k3Q0Dc")
 ```
@@ -49,6 +54,7 @@ To load "cl-ssdb":
 ```
 
 ### command examples
+
 ```lisp
 (ssdb:ping)
 ```
@@ -76,6 +82,7 @@ To load "cl-ssdb":
 More examples please look at the file `test/cl-ssdb-test.lisp`
 
 ## Run test case
+
 First, make sure `ssdb-server` is running. You can use follow shell commands to run `ssdb-server`:
 ```shell
 cd cl-ssdb/test
@@ -90,8 +97,9 @@ In Common Lisp REPL:
 
 OR in Shell:
 ```shell
-sbcl --eval "(asdf:test-system :cl-ssdb)" --eval "(quit)"
+sbcl --eval "(asdf:test-system :cl-ssdb)" --quit
 ```
 
 ## License
+
 MIT (See LICENSE file for details).
